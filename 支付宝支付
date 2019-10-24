@@ -1,0 +1,23 @@
+def pay_ali(request, order_id, order_price, order_name):
+    order_id = order_id + uuid.uuid4().hex
+    alipay = AliPay(
+        appid=ALIPAY_APPID,
+        app_notify_url=None,  # 默认回调url
+        app_private_key_string=APP_PRIVATE_KEY,
+        # 支付宝的公钥，验证支付宝回传消息使用，不是你自己的公钥,
+        alipay_public_key_string=ALIPAY_PUBLIC_KEY,
+        sign_type="RSA",  # RSA 或者 RSA2
+        debug=True  # 默认False
+    )
+    token = request.query_params.get("token")
+    order_string = alipay.api_alipay_trade_page_pay(
+        out_trade_no=order_id,
+        total_amount=order_price,
+        subject=order_name,
+        return_url="http://localhost:8000/fruits/pay/?token=" + token,
+        notify_url="http://localhost:8000"  # 可选, 不填则使用默认notify url
+    )
+
+    pay_url = "https://openapi.alipaydev.com/gateway.do?" + order_string
+
+    return pay_url
